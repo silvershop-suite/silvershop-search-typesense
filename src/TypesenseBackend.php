@@ -160,13 +160,27 @@ class TypesenseBackend implements SearchBackend
     }
 
     /**
-     * Push the CMS-managed synonym groups to Typesense (one PUT per group). No reindex needed to tune synonyms.
+     * Push the CMS-managed synonym groups to Typesense as a single named synonym set (one item per group) and point
+     * the collection at it. No reindex needed to tune synonyms. With no groups, de-associate and delete the set.
      */
     public function pushSynonyms(): void
     {
-        foreach ($this->synonyms() as $i => $group) {
-            $this->client()->upsertSynonym('group-' . $i, $group['synonyms']);
+        $client = $this->client();
+        $setName = (string) self::config()->get('collection_name') . '_synonyms';
+        $groups = $this->synonyms();
+
+        if (!$groups) {
+            $client->associateSynonymSets([]);
+            $client->deleteSynonymSet($setName);
+            return;
         }
+
+        $items = [];
+        foreach ($groups as $i => $group) {
+            $items[] = ['id' => 'g' . $i, 'synonyms' => $group['synonyms']];
+        }
+        $client->upsertSynonymSet($setName, $items);
+        $client->associateSynonymSets([$setName]);
     }
 
     /**

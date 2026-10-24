@@ -13,7 +13,7 @@ use SilverStripe\Core\Injector\Injectable;
  *
  * Typesense idioms absorbed here (and nowhere else): the `X-TYPESENSE-API-KEY` header, the `host:port` split (default
  * port 8108), an explicit typed collection schema created up front, JSONL bulk import (Content-Type text/plain),
- * search as a GET with query-string params, and synonyms as a separate resource.
+ * search as a GET with query-string params, and synonyms as top-level sets (v29+) associated onto the collection.
  */
 class TypesenseClient
 {
@@ -122,21 +122,38 @@ class TypesenseClient
     }
 
     /**
-     * Upsert a multi-way synonym group (a separate Typesense resource, not an index setting).
+     * Upsert a named synonym SET. Typesense >= 29 replaced the per-collection `/collections/{c}/synonyms` API with a
+     * top-level `/synonym_sets` resource: one named set holds many items, each a multi-way group {id, synonyms:[...]}.
      *
-     * @param array<int, string> $terms
+     * @param array<int, array{id: string, synonyms: array<int, string>}> $items
      */
-    public function upsertSynonym(string $id, array $terms): void
+    public function upsertSynonymSet(string $setName, array $items): void
     {
-        $this->json('PUT', "collections/{$this->collection}/synonyms/{$id}", ['synonyms' => array_values($terms)]);
+        $this->json('PUT', "synonym_sets/{$setName}", ['items' => array_values($items)]);
     }
 
-    public function deleteSynonym(string $id): void
+    public function deleteSynonymSet(string $setName): void
     {
         try {
-            $this->http->request('DELETE', "collections/{$this->collection}/synonyms/{$id}");
+            $this->http->request('DELETE', "synonym_sets/{$setName}");
         } catch (\Throwable) {
             // Already absent.
+        }
+    }
+
+    /**
+     * Point the collection at the given synonym sets, so every search through it applies them (the index-setting
+     * model — no per-query param). Guarded: a collection that does not exist yet (synonyms tuned before the first
+     * reindex) is a no-op; the next reindex re-associates.
+     *
+     * @param array<int, string> $setNames
+     */
+    public function associateSynonymSets(array $setNames): void
+    {
+        try {
+            $this->json('PATCH', "collections/{$this->collection}", ['synonym_sets' => array_values($setNames)]);
+        } catch (\Throwable) {
+            // Collection not created yet.
         }
     }
 

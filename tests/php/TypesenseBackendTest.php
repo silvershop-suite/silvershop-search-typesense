@@ -114,7 +114,7 @@ class TypesenseBackendTest extends SapphireTest
         $this->assertSame(['laptop', 'notebook'], $groups[1]['synonyms']);
     }
 
-    public function testPushSynonymsUpsertsOneGroupPerLine(): void
+    public function testPushSynonymsBuildsOneSetAndAssociatesTheCollection(): void
     {
         $config = SiteConfig::current_site_config();
         $config->SearchSynonyms = "tv, television\nlaptop, notebook";
@@ -123,8 +123,25 @@ class TypesenseBackendTest extends SapphireTest
         $fake = new FakeTypesenseClient();
         (new TypesenseBackend())->setClient($fake)->pushSynonyms();
 
-        $this->assertSame(['tv', 'television'], $fake->synonyms['group-0']);
-        $this->assertSame(['laptop', 'notebook'], $fake->synonyms['group-1']);
+        $this->assertArrayHasKey('products_synonyms', $fake->synonymSets, 'one named set holds all groups');
+        $items = $fake->synonymSets['products_synonyms'];
+        $this->assertSame(['id' => 'g0', 'synonyms' => ['tv', 'television']], $items[0]);
+        $this->assertSame(['id' => 'g1', 'synonyms' => ['laptop', 'notebook']], $items[1]);
+        $this->assertSame(['products_synonyms'], $fake->associatedSynonymSets, 'the collection points at the set');
+    }
+
+    public function testPushSynonymsWithNoneDeletesTheSetAndDeassociates(): void
+    {
+        $config = SiteConfig::current_site_config();
+        $config->SearchSynonyms = '';
+        $config->write();
+
+        $fake = new FakeTypesenseClient();
+        $fake->synonymSets['products_synonyms'] = [['id' => 'g0', 'synonyms' => ['x', 'y']]];
+        (new TypesenseBackend())->setClient($fake)->pushSynonyms();
+
+        $this->assertArrayNotHasKey('products_synonyms', $fake->synonymSets, 'the set is deleted when no groups remain');
+        $this->assertSame([], $fake->associatedSynonymSets, 'the collection is de-associated');
     }
 
     public function testSuggestReturnsTopProductsInRankOrder(): void

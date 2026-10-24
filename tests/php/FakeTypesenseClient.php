@@ -22,8 +22,11 @@ class FakeTypesenseClient extends TypesenseClient
 
     public bool $dropped = false;
 
-    /** @var array<string, array<int, string>> */
-    public array $synonyms = [];
+    /** @var array<string, array<int, array{id: string, synonyms: array<int, string>}>> */
+    public array $synonymSets = [];
+
+    /** @var array<int, string> */
+    public array $associatedSynonymSets = [];
 
     /** @var array<string, scalar> */
     public array $lastSearchParams = [];
@@ -71,14 +74,19 @@ class FakeTypesenseClient extends TypesenseClient
         $this->dropped = true;
     }
 
-    public function upsertSynonym(string $id, array $terms): void
+    public function upsertSynonymSet(string $setName, array $items): void
     {
-        $this->synonyms[$id] = array_values($terms);
+        $this->synonymSets[$setName] = array_values($items);
     }
 
-    public function deleteSynonym(string $id): void
+    public function deleteSynonymSet(string $setName): void
     {
-        unset($this->synonyms[$id]);
+        unset($this->synonymSets[$setName]);
+    }
+
+    public function associateSynonymSets(array $setNames): void
+    {
+        $this->associatedSynonymSets = array_values($setNames);
     }
 
     public function health(): bool

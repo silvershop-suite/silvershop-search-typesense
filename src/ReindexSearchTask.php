@@ -13,7 +13,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 
 /**
- * (Re)creates the Typesense collection, re-pushes synonyms and (re)indexes every published product. Run after install,
+ * (Re)creates the Typesense collection, (re)indexes every published product, then pushes synonyms. Run after install,
  * after changing the indexed fields, or to repair drift. Dropping and recreating the collection is the only
  * behavioural difference from the Meilisearch reindex task (Typesense needs the typed schema to exist up front).
  */
@@ -24,7 +24,7 @@ class ReindexSearchTask extends BuildTask
     protected string $title = 'Typesense: reindex all published products';
 
     protected static string $description =
-        'Recreates the Typesense collection, pushes synonyms and (re)indexes every published product.';
+        'Recreates the Typesense collection, (re)indexes every published product, then pushes synonyms.';
 
     protected function execute(InputInterface $input, PolyOutput $output): int
     {
@@ -36,11 +36,17 @@ class ReindexSearchTask extends BuildTask
         }
 
         $backend->ensureCollection();
-        $backend->pushSynonyms();
         $products = Versioned::get_by_stage(Product::class, Versioned::LIVE);
         $backend->index($products);
 
         $output->writeln('Indexed ' . $products->count() . ' published product(s) into Typesense.');
+
+        // Synonyms last, and never fatal: indexing has already succeeded, so a synonyms hiccup must not fail the run.
+        try {
+            $backend->pushSynonyms();
+        } catch (\Throwable $e) {
+            $output->writeln('<comment>Warning: pushing synonyms failed (' . $e->getMessage() . ') — products indexed OK.</comment>');
+        }
 
         return Command::SUCCESS;
     }

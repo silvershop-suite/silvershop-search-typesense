@@ -98,7 +98,9 @@ SilverShop\Search\Typesense\TypesenseBackend:
 
 **Synonyms** — edit them in the CMS at **Settings → Shop → Search synonyms**: one group per line, comma-separated
 (e.g. `tv, television, telly`). Every term in a group matches the others. Saving pushes each group to Typesense
-immediately (as a multi-way synonym resource) — no reindex needed.
+immediately — all groups are pushed as one named `synonym_sets` resource and associated with the collection, so they
+apply to every search with no per-query param and no reindex needed. (Synonyms require **Typesense ≥ 29**, which
+replaced the old per-collection synonyms API with top-level `/synonym_sets`.)
 
 **Typo tolerance** — set per query. Typesense's own defaults already match the house intent (one typo from 4-letter
 terms, two from 7), so a 4-letter query like `iPad` reaches `iPod` out of the box. Tune per key via config:
