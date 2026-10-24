@@ -1,0 +1,6 @@
+de:
+  SilverShop\Search\Typesense\TypesenseBackend:
+    TITLE: 'Typesense'
+  SilverShop\Search\Typesense\SearchConfigExtension:
+    SearchSynonyms: 'Such-Synonyme'
+    SearchSynonymsDesc: 'Eine Gruppe pro Zeile, kommagetrennt — jeder Begriff einer Gruppe passt auf die anderen (z. B. „TV, Fernseher, Glotze"). Vom Typesense-Suchbackend verwendet.'

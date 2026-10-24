@@ -1,0 +1,6 @@
+nl:
+  SilverShop\Search\Typesense\TypesenseBackend:
+    TITLE: 'Typesense'
+  SilverShop\Search\Typesense\SearchConfigExtension:
+    SearchSynonyms: 'Zoeksynoniemen'
+    SearchSynonymsDesc: 'Eén groep per regel, komma-gescheiden — elke term in een groep komt overeen met de andere (bijv. "tv, televisie, buis"). Gebruikt door de Typesense-zoekbackend.'

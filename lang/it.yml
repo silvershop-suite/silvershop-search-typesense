@@ -1,0 +1,6 @@
+it:
+  SilverShop\Search\Typesense\TypesenseBackend:
+    TITLE: 'Typesense'
+  SilverShop\Search\Typesense\SearchConfigExtension:
+    SearchSynonyms: 'Sinonimi di ricerca'
+    SearchSynonymsDesc: 'Un gruppo per riga, separati da virgole — ogni termine di un gruppo corrisponde agli altri (es. "tv, televisione, tele"). Usato dal backend di ricerca Typesense.'

@@ -1,0 +1,6 @@
+en:
+  SilverShop\Search\Typesense\TypesenseBackend:
+    TITLE: 'Typesense'
+  SilverShop\Search\Typesense\SearchConfigExtension:
+    SearchSynonyms: 'Search synonyms'
+    SearchSynonymsDesc: 'One group per line, comma-separated — every term in a group matches the others (e.g. "tv, television, telly"). Used by the Typesense search backend.'
