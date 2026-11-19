@@ -83,7 +83,7 @@ class InstantSearchExtension extends Extension
     }
 
     /**
-     * Brand title when silvershop/brands is installed and the product has one, else '' (the FK guard
+     * Brand title when silvershop-suite/brands is installed and the product has one, else '' (the FK guard
      * keeps this dormant and non-fatal when the brands module is absent).
      */
     private function brand(Product $product): string
